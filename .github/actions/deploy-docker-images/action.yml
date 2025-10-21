@@ -1,0 +1,75 @@
+name: 'Deploy Docker Images'
+description: 'Deploy Docker images using Docker Compose and run smoke tests'
+inputs:
+  environment:
+    description: 'Target deployment environment (e.g., qa, staging, production)'
+    required: true
+  version:
+    description: 'Release version to deploy (e.g., v1.0.4-rc)'
+    required: true
+  image-urls:
+    description: 'Docker image URLs to deploy (JSON array format)'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Deploy System
+      run: |
+        echo "🚀 Deploying system version ${{ inputs.version }} to ${{ inputs.environment }} environment..."
+        echo ""
+        
+        # List Docker images being deployed
+        if [[ -n "${{ inputs.image-urls }}" ]]; then
+          echo "📦 Deploying the following Docker images:"
+          
+          # Parse JSON array and iterate through each URL
+          echo '${{ inputs.image-urls }}' | jq -r '.[]' | while IFS= read -r image_url; do
+            if [[ -n "$image_url" ]]; then
+              echo "   🐳 Deploying: $image_url"
+            fi
+          done
+          echo ""
+        fi
+        
+        echo "📝 Note: We are simulating deployment using Docker Compose Up for testing purposes."
+        echo "🏭 In real applications, this is where you would deploy to:"
+        echo "   - AWS (ECS, EKS, Lambda, EC2)"
+        echo "   - Azure (Container Instances, AKS, App Service)"
+        echo "   - GCP (Cloud Run, GKE, Compute Engine)"
+        echo "   - On-premise (Kubernetes, Docker Swarm, VMs)"
+        echo "   - Other cloud providers (DigitalOcean, Linode, etc.)"
+        echo ""
+        echo "🐳 Starting Docker Compose for simulated deployment..."
+        docker compose up -d
+      shell: bash
+      working-directory: system-test
+
+    - name: Wait for Application to be Ready
+      uses: optivem/wait-for-docker-compose-action@v1
+      with:
+        url: 'http://localhost:8080/'
+        max-attempts: '30'
+        wait-seconds: '10'
+        working-directory: system-test
+      
+    - name: Setup .NET SDK
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Build Test Project  
+      run: dotnet build
+      shell: bash
+      working-directory: system-test
+
+    - name: Install Playwright Browsers
+      run: |
+        pwsh bin/Debug/net8.0/playwright.ps1 install
+      shell: bash
+      working-directory: system-test
+        
+    - name: Run Smoke Tests
+      run: dotnet test --filter "FullyQualifiedName~Optivem.AtddAccelerator.Template.SystemTest.SmokeTests"
+      shell: bash
+      working-directory: system-test
