@@ -7,7 +7,6 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddRazorPages();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -28,17 +27,14 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseExceptionHandler("/Error");
-}
+// Serve index.html as default file (must be before UseStaticFiles)
+app.UseDefaultFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
 
 app.UseAuthorization();
 
-app.MapRazorPages();
 app.MapControllers();
 
 app.Run();
