@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace Optivem.AtddAccelerator.Template.Monolith.Pages
+namespace Optivem.AtddAccelerator.EShop.Monolith.Pages
 {
     public class IndexModel : PageModel
     {

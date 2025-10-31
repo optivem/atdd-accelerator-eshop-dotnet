@@ -1,6 +1,6 @@
 using System.Net;
 
-namespace Optivem.AtddAccelerator.Template.SystemTest.E2eTests
+namespace Optivem.AtddAccelerator.EShop.SystemTest.E2eTests
 {
     public class ApiE2eTest
     {

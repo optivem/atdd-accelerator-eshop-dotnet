@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text.Json;
 
-namespace Optivem.AtddAccelerator.Template.Monolith.Pages
+namespace Optivem.AtddAccelerator.EShop.Monolith.Pages
 {
     public class TodosModel : PageModel
     {
