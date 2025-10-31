@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop - ATDD Accelerator eShop</title>
+</head>
+<body>
+    <h1>Shop</h1>
+    <nav>
+        <a href="/">← Back to Home</a>
+    </nav>
+    
+    <form id="orderForm" method="post" action="/shop">
+        <div>
+            <label for="productId">Product ID (1-100):</label>
+            <input type="number" id="productId" name="productId" aria-label="Product ID" min="1" max="100" value="1" required />
+        </div>
+        <div>
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" aria-label="Quantity" min="1" value="1" required />
+        </div>
+        <button type="submit" aria-label="Place Order">Place Order</button>
+    </form>
+    
+    <div role="alert" id="orderResult"></div>
+
+    <script>
+        document.getElementById('orderForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const productId = parseInt(document.getElementById('productId').value);
+            const quantity = parseInt(document.getElementById('quantity').value);
+            
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId: productId,
+                        quantity: quantity
+                    })
+                });
+                
+                if (response.ok) {
+                    const order = await response.json();
+                    
+                    const resultDiv = document.getElementById('orderResult');
+                    resultDiv.textContent = `Success! Order has been created with Order Number ${order.orderNumber} and Total Price $${order.totalPrice.toFixed(2)}`;
+                } else {
+                    const resultDiv = document.getElementById('orderResult');
+                    resultDiv.textContent = 'Error placing order. Please try again.';
+                }
+            } catch (error) {
+                const resultDiv = document.getElementById('orderResult');
+                resultDiv.textContent = 'Error placing order. Please try again.';
+                console.error('Error:', error);
+            }
+        });
+    </script>
+</body>
+</html>

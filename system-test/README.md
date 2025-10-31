@@ -29,7 +29,7 @@ dotnet test
 Run Smoke Tests Only
 
 ```shell
-dotnet test --filter "FullyQualifiedName~Optivem.AtddAccelerator.EShop.SystemTest.SmokeTests"
+dotnet test --filter "FullyQualifiedName~SmokeTests"
 ```
 
 Stop Docker Containers

@@ -1,20 +1,15 @@
 using System.Net;
 
-namespace Optivem.AtddAccelerator.EShop.SystemTest.SmokeTests
+namespace Optivem.AtddAccelerator.EShop.SystemTest.SmokeTests;
+
+public class ApiSmokeTest
 {
-    public class ApiSmokeTest
+    [Fact]
+    public async Task Echo_ShouldReturn200OK()
     {
-        [Fact]
-        public async Task Echo_ShouldReturn200OK()
-        {
-            // DISCLAIMER: This is an example of a badly written test
-            // which unfortunately simulates real-life software test projects.
-            // This is the starting point for our ATDD Accelerator exercises.
+        using var client = new HttpClient();
+        var response = await client.GetAsync($"{TestConfiguration.BaseUrl}/api/echo");
 
-            using var client = new HttpClient();
-            var response = await client.GetAsync("http://localhost:8080/api/echo");
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }

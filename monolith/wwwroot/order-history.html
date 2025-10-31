@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History - ATDD Accelerator eShop</title>
+</head>
+<body>
+    <h1>Order History</h1>
+    <nav>
+        <a href="/">← Back to Home</a>
+    </nav>
+    
+    <form id="searchForm">
+        <div>
+            <label for="orderNumber">Order Number:</label>
+            <input type="text" id="orderNumber" name="orderNumber" aria-label="Order Number" required />
+        </div>
+        <button type="submit" aria-label="Search">Search</button>
+    </form>
+    
+    <div role="alert" id="orderDetails"></div>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const orderNumber = document.getElementById('orderNumber').value;
+            displayOrderDetails(orderNumber);
+        });
+
+        async function displayOrderDetails(orderNumber) {
+            const resultDiv = document.getElementById('orderDetails');
+            
+            try {
+                const response = await fetch(`/api/orders/${orderNumber}`, {
+                    method: 'GET'
+                });
+                
+                if (response.ok) {
+                    const order = await response.json();
+                    
+                    const cancelButtonHtml = order.status === 'Placed' 
+                        ? `<button type="button" id="cancelButton" aria-label="Cancel Order" onclick="cancelOrder('${order.orderNumber}')">Cancel Order</button>`
+                        : '';
+                    
+                    resultDiv.innerHTML = `
+                        <h2>Order Details</h2>
+                        <div>
+                            <label for="displayOrderNumber">Order Number:</label>
+                            <input type="text" id="displayOrderNumber" aria-label="Display Order Number" value="${order.orderNumber}" readonly />
+                        </div>
+                        <div>
+                            <label for="displayProductId">Product ID:</label>
+                            <input type="text" id="displayProductId" aria-label="Display Product ID" value="${order.productId}" readonly />
+                        </div>
+                        <div>
+                            <label for="displayQuantity">Quantity:</label>
+                            <input type="text" id="displayQuantity" aria-label="Display Quantity" value="${order.quantity}" readonly />
+                        </div>
+                        <div>
+                            <label for="displayUnitPrice">Unit Price:</label>
+                            <input type="text" id="displayUnitPrice" aria-label="Display Unit Price" value="$${order.unitPrice.toFixed(2)}" readonly />
+                        </div>
+                        <div>
+                            <label for="displayTotalPrice">Total Price:</label>
+                            <input type="text" id="displayTotalPrice" aria-label="Display Total Price" value="$${order.totalPrice.toFixed(2)}" readonly />
+                        </div>
+                        <div>
+                            <label for="displayStatus">Status:</label>
+                            <input type="text" id="displayStatus" aria-label="Display Status" value="${order.status}" readonly />
+                        </div>
+                        ${cancelButtonHtml}
+                    `;
+                } else {
+                    resultDiv.textContent = 'Order not found. Please check the order number.';
+                }
+            } catch (error) {
+                resultDiv.textContent = 'Error retrieving order. Please try again.';
+                console.error('Error:', error);
+            }
+        }
+
+        async function cancelOrder(orderNumber) {
+            try {
+                const response = await fetch(`/api/orders/${orderNumber}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.status === 204) {
+                    alert('Order cancelled successfully!');
+                    // Refresh order details to show updated status
+                    displayOrderDetails(orderNumber);
+                } else {
+                    alert('Failed to cancel order. Please try again.');
+                }
+            } catch (error) {
+                alert('Error cancelling order. Please try again.');
+                console.error('Error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

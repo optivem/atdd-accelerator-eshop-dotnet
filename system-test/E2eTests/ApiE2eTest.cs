@@ -1,36 +1,129 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
 
-namespace Optivem.AtddAccelerator.EShop.SystemTest.E2eTests
+namespace Optivem.AtddAccelerator.EShop.SystemTest.E2eTests;
+
+public class ApiE2eTest
 {
-    public class ApiE2eTest
+    private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        [Fact]
-        public async Task GetTodos_ShouldReturnTodoWithExpectedFormat()
+        PropertyNameCaseInsensitive = true
+    };
+
+    [Fact]
+    public async Task PlaceOrder_ShouldReturnOrderNumber()
+    {
+        // Arrange
+        var request = new PlaceOrderRequest
         {
-            // DISCLAIMER: This is an example of a badly written test
-            // which unfortunately simulates real-life software test projects.
-            // This is the starting point for our ATDD Accelerator exercises.
+            ProductId = 10,
+            Quantity = 5
+        };
 
-            // Arrange
-            using var client = new HttpClient();
+        using var client = new HttpClient();
+        
+        // Act
+        var response = await client.PostAsJsonAsync($"{TestConfiguration.BaseUrl}/api/orders", request);
 
-            // Act
-            var response = await client.GetAsync("http://localhost:8080/api/todos/4");
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        
+        var responseBody = await response.Content.ReadAsStringAsync();
+        var orderResponse = JsonSerializer.Deserialize<PlaceOrderResponse>(responseBody, JsonOptions);
+        
+        Assert.NotNull(orderResponse);
+        Assert.NotNull(orderResponse.OrderNumber);
+        Assert.True(orderResponse.OrderNumber.StartsWith("ORD-"), "Order number should start with ORD-");
+    }
 
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            
-            var responseBody = await response.Content.ReadAsStringAsync();
-            
-            // Verify JSON structure contains expected fields
-            Assert.Contains("\"userId\"", responseBody);
-            Assert.Contains("\"id\"", responseBody);
-            Assert.Contains("\"title\"", responseBody);
-            Assert.Contains("\"completed\"", responseBody);
-            
-            // Verify the specific todo has id 4
-            Assert.True(responseBody.Contains("\"id\":4") || responseBody.Contains("\"id\": 4"), 
-                       "Response should contain id with value 4");
-        }
+    [Fact]
+    public async Task GetOrder_ShouldReturnOrderDetails()
+    {
+        // Arrange - First place an order
+        var placeOrderRequest = new PlaceOrderRequest
+        {
+            ProductId = 11,
+            Quantity = 3
+        };
+
+        using var client = new HttpClient();
+        var postResponse = await client.PostAsJsonAsync($"{TestConfiguration.BaseUrl}/api/orders", placeOrderRequest);
+        var postBody = await postResponse.Content.ReadAsStringAsync();
+        var placeOrderResponse = JsonSerializer.Deserialize<PlaceOrderResponse>(postBody, JsonOptions);
+        var orderNumber = placeOrderResponse!.OrderNumber;
+        
+        // Act - Get the order details
+        var getResponse = await client.GetAsync($"{TestConfiguration.BaseUrl}/api/orders/{orderNumber}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        
+        var getBody = await getResponse.Content.ReadAsStringAsync();
+        var getOrderResponse = JsonSerializer.Deserialize<GetOrderResponse>(getBody, JsonOptions);
+        
+        Assert.NotNull(getOrderResponse);
+        Assert.Equal(orderNumber, getOrderResponse.OrderNumber);
+        Assert.Equal(11L, getOrderResponse.ProductId);
+        Assert.Equal(3, getOrderResponse.Quantity);
+        
+        // Price will come from DummyJSON API for product 11
+        Assert.True(getOrderResponse.UnitPrice > 0, "Unit price should be positive");
+        Assert.True(getOrderResponse.TotalPrice > 0, "Total price should be positive");
+    }
+
+    [Fact]
+    public async Task CancelOrder_ShouldSetStatusToCancelled()
+    {
+        // Arrange - First place an order
+        var placeOrderRequest = new PlaceOrderRequest
+        {
+            ProductId = 12,
+            Quantity = 2
+        };
+
+        using var client = new HttpClient();
+        var postResponse = await client.PostAsJsonAsync($"{TestConfiguration.BaseUrl}/api/orders", placeOrderRequest);
+        var postBody = await postResponse.Content.ReadAsStringAsync();
+        var placeOrderResponse = JsonSerializer.Deserialize<PlaceOrderResponse>(postBody, JsonOptions);
+        var orderNumber = placeOrderResponse!.OrderNumber;
+        
+        // Act - Cancel the order
+        var deleteResponse = await client.DeleteAsync($"{TestConfiguration.BaseUrl}/api/orders/{orderNumber}");
+
+        // Assert - Verify cancel response
+        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+        
+        // Verify order status is CANCELLED
+        var getResponse = await client.GetAsync($"{TestConfiguration.BaseUrl}/api/orders/{orderNumber}");
+        Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
+        
+        var getBody = await getResponse.Content.ReadAsStringAsync();
+        var getOrderResponse = JsonSerializer.Deserialize<GetOrderResponse>(getBody, JsonOptions);
+        
+        Assert.NotNull(getOrderResponse);
+        Assert.Equal("Cancelled", getOrderResponse.Status);
+    }
+
+    private class PlaceOrderRequest
+    {
+        public long ProductId { get; set; }
+        public int Quantity { get; set; }
+    }
+    
+    private class PlaceOrderResponse
+    {
+        public string OrderNumber { get; set; } = string.Empty;
+        public decimal TotalPrice { get; set; }
+    }
+    
+    private class GetOrderResponse
+    {
+        public string OrderNumber { get; set; } = string.Empty;
+        public long ProductId { get; set; }
+        public int Quantity { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal TotalPrice { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 }

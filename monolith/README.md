@@ -1,4 +1,6 @@
-# System - Monolith (C#)
+# Monolith (.NET)
+
+This is a sample monolithic application written in .NET.
 
 ## Instructions
 
@@ -30,6 +32,11 @@ To run:
 
 ```shell
 dotnet run --urls "http://localhost:8080"
+```
+
+To restart:
+```shell
+dotnet build && dotnet run --urls "http://localhost:8080"
 ```
 
 App should now be running on:
