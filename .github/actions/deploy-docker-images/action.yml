@@ -70,6 +70,6 @@ runs:
       working-directory: system-test
         
     - name: Run Smoke Tests
-      run: dotnet test --filter "FullyQualifiedName~Optivem.AtddAccelerator.Template.SystemTest.SmokeTests"
+      run: dotnet test --filter "FullyQualifiedName~Optivem.AtddAccelerator.EShop.SystemTest.SmokeTests"
       shell: bash
       working-directory: system-test
