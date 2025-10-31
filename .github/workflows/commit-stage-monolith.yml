@@ -39,7 +39,7 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Build .NET Project
-      run: dotnet build Optivem.AtddAccelerator.Template.Monolith.csproj
+      run: dotnet build Optivem.AtddAccelerator.EShop.Monolith.csproj
       working-directory: monolith
 
     - name: Publish Docker Image
