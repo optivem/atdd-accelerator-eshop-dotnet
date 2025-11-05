@@ -20,6 +20,7 @@ system-test/Core/Clients/
 ?       ??? OrderControllerClient.cs      # Client for Order API endpoints
 ?       ??? EchoControllerClient.cs       # Client for Echo API endpoints
 ??? Ui/
+    ??? UiClient.cs                       # Base UI client with common Playwright methods
     ??? Pages/
         ??? ShopPageClient.cs             # Page Object for Shop page
         ??? OrderHistoryPageClient.cs     # Page Object for Order History page
@@ -57,13 +58,21 @@ system-test/Core/Clients/
 
 ### 2. Created UI Client Layer (Page Objects)
 
+#### Base UI Client (`system-test/Core/Clients/Ui/UiClient.cs`)
+- Provides base Playwright functionality for all page clients
+- Contains protected helper methods: `NavigateToUrl()`, `FillInput()`, `ClickButton()`, `GetText()`, `GetInputValue()`, `WaitForElement()`, `GetElementCount()`
+- Encapsulates common Playwright operations
+- Other page clients inherit from this base class
+
 #### Shop Page Client (`system-test/Core/Clients/Ui/Pages/ShopPageClient.cs`)
+- Inherits from `UiClient`
 - Implements Page Object Model for the Shop page
 - Methods for navigation and interactions: `NavigateToShop()`, `FillProductId()`, `FillQuantity()`, `ClickPlaceOrder()`
 - Helper methods for parsing: `ParseConfirmationMessage()`, `ExtractOrderNumber()`
 - Returns structured data via `OrderConfirmation` record
 
 #### Order History Page Client (`system-test/Core/Clients/Ui/Pages/OrderHistoryPageClient.cs`)
+- Inherits from `UiClient`
 - Implements Page Object Model for the Order History page
 - Methods: `NavigateToOrderHistory()`, `SearchOrder()`, `GetOrderDetails()`, `ClickCancelOrder()`
 - Returns structured data via `OrderDetailsDisplay` class

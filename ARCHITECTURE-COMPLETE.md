@@ -18,6 +18,7 @@ system-test/Core/Clients/
 ?       ??? OrderControllerClient.cs      ? Order API client
 ?       ??? EchoControllerClient.cs       ? Echo API client
 ??? Ui/
+    ??? UiClient.cs                       ? Base Playwright client
     ??? Pages/
         ??? ShopPageClient.cs             ? Shop page object
         ??? OrderHistoryPageClient.cs     ? Order History page object
@@ -29,10 +30,11 @@ system-test/Core/Clients/
 |--------------|--------------|--------|
 | `Clients/ApiClient.cs` | `Core/Clients/Api/ApiClient.cs` | ? Migrated & Enhanced |
 | `Clients/ApiModels.cs` | `Core/Clients/Api/Dtos/*.cs` | ? Migrated & Split |
-| `Clients/ShopPageClient.cs` | `Core/Clients/Ui/Pages/ShopPageClient.cs` | ? Migrated |
-| `Clients/OrderHistoryPageClient.cs` | `Core/Clients/Ui/Pages/OrderHistoryPageClient.cs` | ? Migrated |
+| `Clients/ShopPageClient.cs` | `Core/Clients/Ui/Pages/ShopPageClient.cs` | ? Migrated & Enhanced |
+| `Clients/OrderHistoryPageClient.cs` | `Core/Clients/Ui/Pages/OrderHistoryPageClient.cs` | ? Migrated & Enhanced |
 | N/A | `Core/Clients/Api/Controllers/OrderControllerClient.cs` | ? Created |
 | N/A | `Core/Clients/Api/Controllers/EchoControllerClient.cs` | ? Created |
+| N/A | `Core/Clients/Ui/UiClient.cs` | ? Created |
 
 ### Tests Updated
 

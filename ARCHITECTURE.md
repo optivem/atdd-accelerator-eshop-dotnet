@@ -15,7 +15,8 @@ system-test/
 ?       ?   ??? Controllers/                  # Controller-specific clients
 ?       ?       ??? OrderControllerClient.cs  # ? maps to monolith/Controllers/OrderController.cs
 ?       ?       ??? EchoControllerClient.cs   # ? maps to monolith/Controllers/EchoController.cs
-?       ??? Ui/                               # UI Testing Layer  
+?       ??? Ui/                               # UI Testing Layer
+?           ??? UiClient.cs                   # Base Playwright client (abstract functionality)
 ?           ??? Pages/                        # Page Object Model
 ?               ??? ShopPageClient.cs         # ? interacts with /shop.html
 ?               ??? OrderHistoryPageClient.cs # ? interacts with /order-history.html
@@ -55,35 +56,43 @@ ApiClient (base class)
 ### UI Clients (Page Objects)
 
 ```
-ShopPageClient
+UiClient (base class)
 ??? Properties:
-?   ??? IPage _page
-?   ??? string _baseUrl
+?   ??? IPage Page
+?   ??? string BaseUrl
 ??? Methods:
-?   ??? NavigateToShop()
-?   ??? FillProductId(string productId)
-?   ??? FillQuantity(string quantity)
-?   ??? ClickPlaceOrder()
-?   ??? GetConfirmationMessage()
-?   ??? ParseConfirmationMessage(string) ? OrderConfirmation
-?   ??? ExtractOrderNumber(string) ? string
-??? Returns:
-    ??? OrderConfirmation record (OrderNumber, TotalPrice)
-
-OrderHistoryPageClient
-??? Properties:
-?   ??? IPage _page
-?   ??? string _baseUrl
-??? Methods:
-?   ??? NavigateToOrderHistory()
-?   ??? SearchOrder(string orderNumber)
-?   ??? WaitForOrderDetails()
-?   ??? GetOrderDetailsText()
-?   ??? GetOrderDetails() ? OrderDetailsDisplay
-?   ??? ClickCancelOrder()
-?   ??? GetCancelButtonCount() ? int
-??? Returns:
-    ??? OrderDetailsDisplay class (OrderNumber, ProductId, Quantity, UnitPrice, TotalPrice, Status)
+?   ??? NavigateToUrl(string relativeUrl)
+?   ??? GetLocator(string selector)
+?   ??? FillInput(string selector, string value)
+?   ??? ClickButton(string selector)
+?   ??? GetText(string selector)
+?   ??? GetInputValue(string selector)
+?   ??? WaitForElement(string selector, int timeoutMs)
+?   ??? GetElementCount(string selector)
+?
+??? ShopPageClient
+?   ??? Methods:
+?       ??? NavigateToShop()
+?       ??? FillProductId(string productId)
+?       ??? FillQuantity(string quantity)
+?       ??? ClickPlaceOrder()
+?       ??? GetConfirmationMessage()
+?       ??? ParseConfirmationMessage(string) ? OrderConfirmation
+?       ??? ExtractOrderNumber(string) ? string
+?   ??? Returns:
+?       ??? OrderConfirmation record (OrderNumber, TotalPrice)
+?
+??? OrderHistoryPageClient
+    ??? Methods:
+        ??? NavigateToOrderHistory()
+        ??? SearchOrder(string orderNumber)
+        ??? WaitForOrderDetails()
+        ??? GetOrderDetailsText()
+        ??? GetOrderDetails() ? OrderDetailsDisplay
+        ??? ClickCancelOrder()
+        ??? GetCancelButtonCount() ? int
+    ??? Returns:
+        ??? OrderDetailsDisplay class (OrderNumber, ProductId, Quantity, UnitPrice, TotalPrice, Status)
 ```
 
 ## Data Flow

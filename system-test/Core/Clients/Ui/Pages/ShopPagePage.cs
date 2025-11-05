@@ -3,48 +3,31 @@ using System.Text.RegularExpressions;
 
 namespace Optivem.AtddAccelerator.EShop.SystemTest.Core.Clients.Ui.Pages;
 
-public class ShopPageClient
+public class ShopPagePage : BasePage
 {
-    private readonly IPage _page;
-    private readonly string _baseUrl;
-
-    public ShopPageClient(IPage page, string baseUrl)
+    public ShopPagePage(IPage page, string baseUrl) : base(page, baseUrl)
     {
-        _page = page;
-        _baseUrl = baseUrl;
-    }
-
-    public async Task NavigateToShop()
-    {
-        await _page.GotoAsync($"{_baseUrl}/shop.html");
     }
 
     public async Task FillProductId(string productId)
     {
-        var productIdInput = _page.Locator("[aria-label='Product ID']");
-        await productIdInput.FillAsync(productId);
+        await FillInput("[aria-label='Product ID']", productId);
     }
 
     public async Task FillQuantity(string quantity)
     {
-        var quantityInput = _page.Locator("[aria-label='Quantity']");
-        await quantityInput.FillAsync(quantity);
+        await FillInput("[aria-label='Quantity']", quantity);
     }
 
     public async Task ClickPlaceOrder()
     {
-        var placeOrderButton = _page.Locator("[aria-label='Place Order']");
-        await placeOrderButton.ClickAsync();
+        await ClickButton("[aria-label='Place Order']");
     }
 
     public async Task<string> GetConfirmationMessage()
     {
-        var confirmationMessage = _page.Locator("[role='alert']");
-        await confirmationMessage.WaitForAsync(new LocatorWaitForOptions 
-        { 
-            Timeout = TestConfiguration.WaitSeconds * 1000 
-        });
-        return await confirmationMessage.TextContentAsync() ?? string.Empty;
+        await WaitForElement("[role='alert']", TestConfiguration.WaitSeconds * 1000);
+        return await GetText("[role='alert']");
     }
 
     public OrderConfirmation ParseConfirmationMessage(string message)
