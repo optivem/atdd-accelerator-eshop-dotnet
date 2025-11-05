@@ -4,92 +4,165 @@
 
 This step introduces the **Client Layer** pattern to the E2E tests, extracting HTTP and UI interaction logic into dedicated client classes. This follows the **Page Object Model** for UI tests and the **API Client** pattern for API tests.
 
+The architecture is organized into a hierarchical structure that separates API clients from UI clients and further organizes them by controller and page responsibilities.
+
+## Architecture Structure
+
+```
+system-test/Core/Clients/
+??? Api/
+?   ??? ApiClient.cs                      # Base HTTP client with common methods
+?   ??? Dtos/                             # Data Transfer Objects
+?   ?   ??? PlaceOrderRequest.cs          # DTO for placing orders
+?   ?   ??? PlaceOrderResponse.cs         # DTO for order placement response
+?   ?   ??? GetOrderResponse.cs           # DTO for retrieving order details
+?   ??? Controllers/
+?       ??? OrderControllerClient.cs      # Client for Order API endpoints
+?       ??? EchoControllerClient.cs       # Client for Echo API endpoints
+??? Ui/
+    ??? Pages/
+        ??? ShopPageClient.cs             # Page Object for Shop page
+        ??? OrderHistoryPageClient.cs     # Page Object for Order History page
+```
+
 ## Changes Made
 
-### 1. Created Client Classes
+### 1. Created API Client Layer
 
-#### API Client (`system-test/Clients/ApiClient.cs`)
-- Encapsulates all HTTP interactions with the API
-- Provides methods: `PlaceOrder()`, `GetOrder()`, `CancelOrder()`, `IsHealthy()`
-- Handles JSON serialization/deserialization
-- Uses HttpClient with base URL configuration
+#### Base API Client (`system-test/Core/Clients/Api/ApiClient.cs`)
+- Provides base HTTP functionality for all API clients
+- Contains protected helper methods: `GetAsync<T>()`, `PostAsync<T>()`, `DeleteAsync()`
+- Handles JSON serialization/deserialization with proper configuration
+- Configured with `JsonStringEnumConverter` for enum handling
+- Other API clients inherit from this base class
 
-#### API Models (`system-test/Clients/ApiModels.cs`)
-- Extracted DTOs from test classes into shared models
-- Classes: `PlaceOrderRequest`, `PlaceOrderResponse`, `GetOrderResponse`
+#### API DTOs (`system-test/Core/Clients/Api/Dtos/`)
+- Centralized Data Transfer Objects in dedicated folder
+- Each DTO is in its own file for better maintainability
+- Files:
+  - `PlaceOrderRequest.cs` - Request DTO for placing orders
+  - `PlaceOrderResponse.cs` - Response DTO from placing orders
+  - `GetOrderResponse.cs` - Response DTO for retrieving order details
 
-#### Shop Page Client (`system-test/Clients/ShopPageClient.cs`)
+#### Order Controller Client (`system-test/Core/Clients/Api/Controllers/OrderControllerClient.cs`)
+- Inherits from `ApiClient`
+- Provides methods: `PlaceOrder()`, `GetOrder()`, `CancelOrder()`
+- Maps directly to `OrderController` endpoints in the monolith
+- Uses DTOs from `Core.Clients.Api.Dtos` namespace
+
+#### Echo Controller Client (`system-test/Core/Clients/Api/Controllers/EchoControllerClient.cs`)
+- Inherits from `ApiClient`
+- Provides method: `Echo()`
+- Maps to `EchoController` endpoints
+
+### 2. Created UI Client Layer (Page Objects)
+
+#### Shop Page Client (`system-test/Core/Clients/Ui/Pages/ShopPageClient.cs`)
 - Implements Page Object Model for the Shop page
-- Provides methods: `NavigateToShop()`, `FillProductId()`, `FillQuantity()`, `ClickPlaceOrder()`, `GetConfirmationMessage()`
-- Includes helper methods: `ParseConfirmationMessage()`, `ExtractOrderNumber()`
+- Methods for navigation and interactions: `NavigateToShop()`, `FillProductId()`, `FillQuantity()`, `ClickPlaceOrder()`
+- Helper methods for parsing: `ParseConfirmationMessage()`, `ExtractOrderNumber()`
+- Returns structured data via `OrderConfirmation` record
 
-#### Order History Page Client (`system-test/Clients/OrderHistoryPageClient.cs`)
+#### Order History Page Client (`system-test/Core/Clients/Ui/Pages/OrderHistoryPageClient.cs`)
 - Implements Page Object Model for the Order History page
-- Provides methods: `NavigateToOrderHistory()`, `SearchOrder()`, `GetOrderDetails()`, `ClickCancelOrder()`
+- Methods: `NavigateToOrderHistory()`, `SearchOrder()`, `GetOrderDetails()`, `ClickCancelOrder()`
 - Returns structured data via `OrderDetailsDisplay` class
 
-### 2. Refactored Tests
+### 3. Refactored Tests
 
 #### API E2E Tests (`system-test/E2eTests/ApiE2eTest.cs`)
-- **Before**: Direct HttpClient calls with inline JSON handling
-- **After**: Uses `ApiClient` for all API interactions
+- **Before**: Used generic `ApiClient` for all API calls
+- **After**: Uses specific `OrderControllerClient`
 - **Benefits**: 
-  - Tests are more readable and focused on business logic
-  - HTTP details are abstracted away
-  - Easier to maintain and reuse API calls
+  - Clear separation of controller responsibilities
+  - Tests are more focused and easier to read
+  - Follows Single Responsibility Principle
 
 #### UI E2E Tests (`system-test/E2eTests/UiE2eTest.cs`)
-- **Before**: Direct Playwright locator calls scattered throughout tests
-- **After**: Uses `ShopPageClient` and `OrderHistoryPageClient`
+- **Before**: Used `ShopPageClient` and `OrderHistoryPageClient` from `Clients` namespace
+- **After**: Uses page clients from `Core.Clients.Ui.Pages` namespace
 - **Benefits**:
-  - Tests read like business scenarios
-  - Page structure changes only require updates in one place
-  - Reusable page interaction methods
+  - Better organization following standard patterns
+  - Clear separation between API and UI clients
 
-### 3. Updated README
-- Added **Process** section showing step-by-step evolution
-- Links to each branch/step in the learning path
+### 4. Removed Old Structure
+- Deleted `system-test/Clients/` folder
+- All client code now lives under `system-test/Core/Clients/`
 
-## Benefits of This Refactoring
+## Benefits of This Architecture
 
-### 1. **Separation of Concerns**
-- Test logic (what to test) is separated from implementation details (how to interact)
-- Tests focus on business behavior
-- Clients handle technical interactions
+### 1. **Clear Separation of Concerns**
+- **API clients** are separate from **UI clients**
+- Each **controller** has its own client class
+- Each **page** has its own page object class
 
-### 2. **Reusability**
-- Client methods can be reused across multiple tests
-- Common interactions are defined once
+### 2. **Inheritance Hierarchy**
+- Base `ApiClient` provides common HTTP functionality
+- Controller clients inherit and add specific endpoint methods
+- Reduces duplication and promotes reuse
 
 ### 3. **Maintainability**
-- If API or UI changes, only clients need updates
+- If API endpoints change, only the relevant controller client needs updates
+- If UI changes, only the relevant page client needs updates
 - Tests remain stable and focused on behavior
-- Reduces duplication
 
-### 4. **Readability**
-- Tests are more declarative and easier to understand
-- Business intent is clearer
-- Less technical noise in test code
+### 4. **Scalability**
+- Easy to add new controller clients (e.g., `ProductControllerClient`)
+- Easy to add new page clients (e.g., `CheckoutPageClient`)
+- Structure scales naturally as application grows
 
-### 5. **Testability**
-- Clients can be tested independently
-- Easier to mock/stub for isolated testing
+### 5. **Alignment with Monolith Structure**
+- Controller clients mirror the monolith's `Controllers/`
+- Makes it easy for developers to find corresponding test clients
+- Reduces cognitive load when navigating codebase
+
+## Example: Controller Client Pattern
+
+### Monolith Controller
+```csharp
+// monolith/Controllers/OrderController.cs
+[ApiController]
+[Route("api")]
+public class OrderController : ControllerBase
+{
+    [HttpPost("orders")]
+    public async Task<ActionResult<PlaceOrderResponse>> PlaceOrder([FromBody] PlaceOrderRequest request)
+    
+    [HttpGet("orders/{orderNumber}")]
+    public ActionResult<GetOrderResponse> GetOrder(string orderNumber)
+    
+    [HttpDelete("orders/{orderNumber}")]
+    public IActionResult CancelOrder(string orderNumber)
+}
+```
+
+### Test Controller Client
+```csharp
+// system-test/Core/Clients/Api/Controllers/OrderControllerClient.cs
+public class OrderControllerClient : ApiClient
+{
+    public async Task<PlaceOrderResponse> PlaceOrder(PlaceOrderRequest request)
+    public async Task<GetOrderResponse> GetOrder(string orderNumber)
+    public async Task CancelOrder(string orderNumber)
+}
+```
+
+**Perfect 1:1 mapping!**
 
 ## Example Comparison
 
-### Before (Direct Interactions)
+### Before (Flat Structure)
 ```csharp
-var request = new PlaceOrderRequest { ProductId = 10, Quantity = 5 };
-using var client = new HttpClient();
-var response = await client.PostAsJsonAsync($"{TestConfiguration.BaseUrl}/api/orders", request);
-var responseBody = await response.Content.ReadAsStringAsync();
-var orderResponse = JsonSerializer.Deserialize<PlaceOrderResponse>(responseBody, JsonOptions);
+// system-test/Clients/ApiClient.cs - generic client for all endpoints
+var apiClient = new ApiClient(baseUrl);
+var response = await apiClient.PlaceOrder(request);
 ```
 
-### After (Using Client)
+### After (Hierarchical Structure)
 ```csharp
-var request = new PlaceOrderRequest { ProductId = 10, Quantity = 5 };
-var response = await _apiClient.PlaceOrder(request);
+// system-test/Core/Clients/Api/Controllers/OrderControllerClient.cs
+var orderClient = new OrderControllerClient(baseUrl);
+var response = await orderClient.PlaceOrder(request);
 ```
 
 ## Next Steps
@@ -108,5 +181,11 @@ dotnet test
 
 ## Alignment with Java Version
 
-This implementation follows the same pattern as the Java version at:
-https://github.com/optivem/atdd-accelerator-eshop-java/tree/step-01-e2e-tests-clients
+This implementation follows the same hierarchical pattern as the Java version at:
+https://github.com/optivem/atdd-accelerator-eshop-java/tree/step-01-e2e-tests-clients/system-test/src/test/java/com/optivem/atddaccelerator/eshop/systemtest/core/clients
+
+**Structure Mapping:**
+- Java: `core/clients/api/` ? .NET: `Core/Clients/Api/`
+- Java: `core/clients/ui/` ? .NET: `Core/Clients/Ui/`
+- Java: `api/controllers/` ? .NET: `Api/Controllers/`
+- Java: `ui/pages/` ? .NET: `Ui/Pages/`

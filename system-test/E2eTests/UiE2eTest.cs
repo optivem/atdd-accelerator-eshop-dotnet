@@ -1,5 +1,5 @@
 using Microsoft.Playwright;
-using Optivem.AtddAccelerator.EShop.SystemTest.Clients;
+using Optivem.AtddAccelerator.EShop.SystemTest.Core.Clients.Ui.Pages;
 
 namespace Optivem.AtddAccelerator.EShop.SystemTest.E2eTests;
 

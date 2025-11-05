@@ -1,16 +1,4 @@
-namespace Optivem.AtddAccelerator.EShop.SystemTest.Clients;
-
-public class PlaceOrderRequest
-{
-    public long ProductId { get; set; }
-    public int Quantity { get; set; }
-}
-
-public class PlaceOrderResponse
-{
-    public string OrderNumber { get; set; } = string.Empty;
-    public decimal TotalPrice { get; set; }
-}
+namespace Optivem.AtddAccelerator.EShop.SystemTest.Core.Clients.Api.Dtos;
 
 public class GetOrderResponse
 {

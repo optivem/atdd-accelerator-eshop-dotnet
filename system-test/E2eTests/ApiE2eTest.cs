@@ -1,17 +1,19 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Optivem.AtddAccelerator.EShop.SystemTest.Clients;
+using Optivem.AtddAccelerator.EShop.SystemTest.Core.Clients.Api;
+using Optivem.AtddAccelerator.EShop.SystemTest.Core.Clients.Api.Controllers;
+using Optivem.AtddAccelerator.EShop.SystemTest.Core.Clients.Api.Dtos;
 
 namespace Optivem.AtddAccelerator.EShop.SystemTest.E2eTests;
 
 public class ApiE2eTest
 {
-    private readonly ApiClient _apiClient;
+    private readonly OrderControllerClient _orderClient;
 
     public ApiE2eTest()
     {
-        _apiClient = new ApiClient(TestConfiguration.BaseUrl);
+        _orderClient = new OrderControllerClient(TestConfiguration.BaseUrl);
     }
 
     [Fact]
@@ -25,7 +27,7 @@ public class ApiE2eTest
         };
 
         // Act
-        var response = await _apiClient.PlaceOrder(request);
+        var response = await _orderClient.PlaceOrder(request);
 
         // Assert
         Assert.NotNull(response.OrderNumber);
@@ -43,11 +45,11 @@ public class ApiE2eTest
             Quantity = 3
         };
 
-        var placeOrderResponse = await _apiClient.PlaceOrder(placeOrderRequest);
+        var placeOrderResponse = await _orderClient.PlaceOrder(placeOrderRequest);
         var orderNumber = placeOrderResponse.OrderNumber;
         
         // Act - Get the order details
-        var getOrderResponse = await _apiClient.GetOrder(orderNumber);
+        var getOrderResponse = await _orderClient.GetOrder(orderNumber);
 
         // Assert
         Assert.Equal(orderNumber, getOrderResponse.OrderNumber);
@@ -68,14 +70,14 @@ public class ApiE2eTest
             Quantity = 2
         };
 
-        var placeOrderResponse = await _apiClient.PlaceOrder(placeOrderRequest);
+        var placeOrderResponse = await _orderClient.PlaceOrder(placeOrderRequest);
         var orderNumber = placeOrderResponse.OrderNumber;
         
         // Act - Cancel the order
-        await _apiClient.CancelOrder(orderNumber);
+        await _orderClient.CancelOrder(orderNumber);
 
         // Assert - Verify order status is CANCELLED
-        var getOrderResponse = await _apiClient.GetOrder(orderNumber);
+        var getOrderResponse = await _orderClient.GetOrder(orderNumber);
         Assert.Equal("Cancelled", getOrderResponse.Status);
     }
 }

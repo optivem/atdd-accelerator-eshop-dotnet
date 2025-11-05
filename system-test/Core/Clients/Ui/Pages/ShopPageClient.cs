@@ -1,7 +1,7 @@
 using Microsoft.Playwright;
 using System.Text.RegularExpressions;
 
-namespace Optivem.AtddAccelerator.EShop.SystemTest.Clients;
+namespace Optivem.AtddAccelerator.EShop.SystemTest.Core.Clients.Ui.Pages;
 
 public class ShopPageClient
 {
